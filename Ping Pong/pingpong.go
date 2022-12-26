@@ -75,7 +75,7 @@ func updateBall() {
     if (ball_pos_x < (20 + barWidth) && ball_pos_x > 20 &&
         ball_pos_y < (screenHeight/2+P1pos + barHeight/2) && ball_pos_y > (screenHeight/2+P1pos - barHeight/2)) {
 
-        t := ((ball_pos_y - screenHeight/2+P1pos) / barHeight) - 0.5
+        t := ((ball_pos_y - screenHeight/2+P1pos) / barHeight/2) - 0.5
         ball_dir_x = math.Abs(ball_dir_x)
 		ball_dir_y = t
     }
@@ -84,7 +84,7 @@ func updateBall() {
     if (ball_pos_x < (screenWidth-40 + barWidth) && ball_pos_x > (screenWidth-40) && 
         ball_pos_y < (screenHeight/2+P2pos + barHeight/2) && ball_pos_y > (screenHeight/2+P2pos - barHeight/2)) {
         
-        t := ((ball_pos_y - -screenHeight/2+P2pos) / barHeight) - 0.5
+        t := ((ball_pos_y - screenHeight/2+P2pos) / barHeight/2) - 0.5
         ball_dir_x = -math.Abs(ball_dir_x)
         ball_dir_y = t;
     }
@@ -171,8 +171,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(Player2, nil)	
 	screen.DrawImage(Ball, nil)	
 
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nPlayer1: %d \nPlayer2: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), p1score, p2score))
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
