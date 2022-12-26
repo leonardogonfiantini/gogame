@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 
 	"image/color"
 
@@ -18,14 +19,25 @@ const (
 
 	barWidth = 15
 	barHeight = 60
+
+	ballSize = 10
 )
 
 var (
+	p1score = 0
+	p2score = 0
 
 	P1pos float64 = 0
 	P2pos float64 = 0
+	PlayerSpeed float64 = 6
 
-	PlayerSpeed float64 = 5
+	ball_pos_x float64 = screenWidth / 2
+	ball_pos_y float64 = screenHeight / 2
+	
+	ball_dir_x float64 = -1
+	ball_dir_y float64 = 0
+	
+	ball_speed float64 = 4
 )
 
 type Game struct {
@@ -44,6 +56,70 @@ var (
 	}
 )
 
+func vec2_norm() {
+	// sets a vectors length to 1 (which means that x + y == 1)
+	length := math.Sqrt((ball_dir_x * ball_dir_x) + (ball_dir_y * ball_dir_y));
+	if (length != 0.0) {
+		length = 1.0 / length;
+		ball_dir_x *= length;
+		ball_dir_y *= length;
+	}
+}
+
+func updateBall() {
+	// fly a bit
+    ball_pos_x += ball_dir_x * ball_speed
+    ball_pos_y += ball_dir_y * ball_speed
+
+    //left 
+    if (ball_pos_x < (20 + barWidth) && ball_pos_x > 20 &&
+        ball_pos_y < (screenHeight/2+P1pos + barHeight/2) && ball_pos_y > (screenHeight/2+P1pos - barHeight/2)) {
+
+        t := ((ball_pos_y - screenHeight/2+P1pos) / barHeight) - 0.5
+        ball_dir_x = math.Abs(ball_dir_x)
+		ball_dir_y = t
+    }
+
+	//right
+    if (ball_pos_x < (screenWidth-40 + barWidth) && ball_pos_x > (screenWidth-40) && 
+        ball_pos_y < (screenHeight/2+P2pos + barHeight/2) && ball_pos_y > (screenHeight/2+P2pos - barHeight/2)) {
+        
+        t := ((ball_pos_y - -screenHeight/2+P2pos) / barHeight) - 0.5
+        ball_dir_x = -math.Abs(ball_dir_x)
+        ball_dir_y = t;
+    }
+
+    //left wall
+    if (ball_pos_x < 0) {
+        p2score++
+        ball_pos_x = screenWidth / 2
+        ball_pos_y = screenHeight / 2
+        ball_dir_x = math.Abs(ball_dir_x);
+        ball_dir_y = 0
+    }
+
+    //right wall
+    if (ball_pos_x > screenWidth) {
+		p1score++
+        ball_pos_x = screenWidth / 2
+        ball_pos_y = screenHeight / 2
+        ball_dir_x = -math.Abs(ball_dir_x)
+        ball_dir_y = 0
+    }
+
+    //top wall
+    if (ball_pos_y > screenHeight) {
+        ball_dir_y = -math.Abs(ball_dir_y)
+    }
+
+    //bottom wall
+    if (ball_pos_y < 0) {
+        ball_dir_y = math.Abs(ball_dir_y)
+	}
+
+    vec2_norm();
+}
+
 func (g *Game) Update() error {
 
 	pressed := inpututil.PressedKeys()
@@ -52,17 +128,28 @@ func (g *Game) Update() error {
 			if p == k {
 				switch k {
 				case keys[0]:
-					P1pos -= PlayerSpeed
+					if (P1pos - PlayerSpeed) >= -(screenHeight/2-barHeight/2) {
+						P1pos -= PlayerSpeed
+					}
 				case keys[1]:
-					P1pos += PlayerSpeed
+					if (P1pos + PlayerSpeed) <= (screenHeight/2-barHeight/2) {
+						P1pos += PlayerSpeed
+					}
 				case keys[2]:
-					P2pos -= PlayerSpeed
+					if (P2pos - PlayerSpeed) >= -(screenHeight/2-barHeight/2) {
+						P2pos -= PlayerSpeed
+					}
 				case keys[3]:
-					P2pos += PlayerSpeed
+					if (P2pos + PlayerSpeed) <= (screenHeight/2-barHeight/2) {
+						P2pos += PlayerSpeed
+					}
 				}
 			}
 		}
 	}
+
+
+	updateBall()
 
 	g.counter++
 
@@ -78,7 +165,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	ebitenutil.DrawRect(Player1, 20, screenHeight/2-barHeight/2 + P1pos, barWidth, barHeight, color.White)
 	ebitenutil.DrawRect(Player2, screenWidth-40, screenHeight/2-barHeight/2 + P2pos, barWidth, barHeight, color.White)
-	ebitenutil.DrawCircle(Ball, screenWidth/2-4, screenHeight/2-4, 4, color.White)
+	ebitenutil.DrawRect(Ball, ball_pos_x - ballSize/2, ball_pos_y - ballSize/2, ballSize, ballSize, color.White)
 
 	screen.DrawImage(Player1, nil)	
 	screen.DrawImage(Player2, nil)	
