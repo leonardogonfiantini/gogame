@@ -4,7 +4,7 @@ import (
 	"log"
 	"math"
 	"image"
-	_ "image/png"
+	"image/png"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
